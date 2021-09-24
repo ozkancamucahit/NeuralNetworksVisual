@@ -1,0 +1,11 @@
+.vs
+.vscode
+CPULib/bin
+CPULib/obj
+CudaLib/bin
+CudaLib/bin-int
+CudaLib/x64
+WindowsFormsAppwCuda/bin
+WindowsFormsAppwCuda/obj
+WinFormsAppWCUDA/bin
+WinFormsAppWCUDA/obj
