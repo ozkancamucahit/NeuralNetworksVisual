@@ -47,6 +47,21 @@ namespace CPULib
         {
             return !((s1.X == s2.X) && (s1.Y == s2.Y));
         }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
     }
 
     

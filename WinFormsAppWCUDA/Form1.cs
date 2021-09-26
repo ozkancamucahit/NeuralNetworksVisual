@@ -280,6 +280,8 @@ namespace WinFormsAppWCUDA
 
                 if (samples.Count == 0) btnRemoveSelected.Enabled = false;
             }
+            btnRemoveSelected.Enabled = false;
         }
+
     }
 }
