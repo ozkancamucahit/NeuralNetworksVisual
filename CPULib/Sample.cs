@@ -4,7 +4,7 @@ using System.Text;
 
 namespace CPULib
 {
-    public enum CLASSID { CLASS1, CLASS2, CLASS3, CLASS4}
+    public enum CLASSID { NULL, CLASS1, CLASS2, CLASS3, CLASS4}
     public struct Sample
     {
         public Sample(int x_, int y_, CLASSID classId_)
@@ -36,6 +36,7 @@ namespace CPULib
 
         public CLASSID sampleID { 
             get { return classID; }
+            set { classID = value; }
         }
 
         public static bool operator ==(Sample s1, Sample s2)
@@ -62,9 +63,7 @@ namespace CPULib
         {
             return base.ToString();
         }
+
     }
-
-    
-
     
 }

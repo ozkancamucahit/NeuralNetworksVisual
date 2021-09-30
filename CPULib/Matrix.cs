@@ -2,14 +2,25 @@
 
 namespace CPULib
 {
-    //public  enum Sample{ lol, kol}
     public class Matrix
     {
 
+        public Matrix(int rows, int cols)
+        {
+            Data = new float[rows * cols];
+            Rows = rows;
+            Cols = cols;
+        }
 
+        public Matrix()
+        {
 
-        private
-            float[,] weights;
+        }
+        public float[] Data { get; set; }
+
+        public int Rows { get; private set; }
+        public int Cols { get; private set; }
+
 
     }
 }
