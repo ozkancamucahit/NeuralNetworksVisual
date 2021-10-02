@@ -38,6 +38,7 @@ namespace WinFormsAppWCUDA
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.showToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.trainToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.autoTrainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.trainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -55,6 +56,7 @@ namespace WinFormsAppWCUDA
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.lblNoOfInputs = new System.Windows.Forms.Label();
             this.lblNoOfCorrectGuesses = new System.Windows.Forms.Label();
+            this.lblNoOfIterations = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pbCartesianBox)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -94,37 +96,45 @@ namespace WinFormsAppWCUDA
             // nNToolStripMenuItem
             // 
             this.nNToolStripMenuItem.Name = "nNToolStripMenuItem";
-            this.nNToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.nNToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.nNToolStripMenuItem.Text = "NN";
             // 
             // loadWeightsToolStripMenuItem
             // 
             this.loadWeightsToolStripMenuItem.Name = "loadWeightsToolStripMenuItem";
-            this.loadWeightsToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.loadWeightsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadWeightsToolStripMenuItem.Text = "Load Weights";
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.showToolStripMenuItem1,
-            this.trainToolStripMenuItem1});
+            this.trainToolStripMenuItem1,
+            this.autoTrainToolStripMenuItem});
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(146, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem2.Text = "&Random";
             // 
             // showToolStripMenuItem1
             // 
             this.showToolStripMenuItem1.Name = "showToolStripMenuItem1";
-            this.showToolStripMenuItem1.Size = new System.Drawing.Size(103, 22);
+            this.showToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.showToolStripMenuItem1.Text = "Show";
             this.showToolStripMenuItem1.Click += new System.EventHandler(this.showToolStripMenuItem1_Click);
             // 
             // trainToolStripMenuItem1
             // 
             this.trainToolStripMenuItem1.Name = "trainToolStripMenuItem1";
-            this.trainToolStripMenuItem1.Size = new System.Drawing.Size(103, 22);
+            this.trainToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.trainToolStripMenuItem1.Text = "Train";
             this.trainToolStripMenuItem1.Click += new System.EventHandler(this.trainToolStripMenuItem1_Click);
+            // 
+            // autoTrainToolStripMenuItem
+            // 
+            this.autoTrainToolStripMenuItem.Name = "autoTrainToolStripMenuItem";
+            this.autoTrainToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.autoTrainToolStripMenuItem.Text = "AutoTrain";
+            this.autoTrainToolStripMenuItem.Click += new System.EventHandler(this.autoTrainToolStripMenuItem_Click);
             // 
             // trainToolStripMenuItem
             // 
@@ -289,12 +299,21 @@ namespace WinFormsAppWCUDA
             this.lblNoOfCorrectGuesses.Size = new System.Drawing.Size(0, 15);
             this.lblNoOfCorrectGuesses.TabIndex = 9;
             // 
+            // lblNoOfIterations
+            // 
+            this.lblNoOfIterations.AutoSize = true;
+            this.lblNoOfIterations.Location = new System.Drawing.Point(448, 341);
+            this.lblNoOfIterations.Name = "lblNoOfIterations";
+            this.lblNoOfIterations.Size = new System.Drawing.Size(0, 15);
+            this.lblNoOfIterations.TabIndex = 10;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(924, 452);
+            this.Controls.Add(this.lblNoOfIterations);
             this.Controls.Add(this.lblNoOfCorrectGuesses);
             this.Controls.Add(this.lblNoOfInputs);
             this.Controls.Add(this.btnRemoveSelected);
@@ -307,6 +326,7 @@ namespace WinFormsAppWCUDA
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Neural Networks";
             ((System.ComponentModel.ISupportInitialize)(this.pbCartesianBox)).EndInit();
             this.menuStrip1.ResumeLayout(false);
@@ -346,6 +366,8 @@ namespace WinFormsAppWCUDA
         private System.Windows.Forms.ToolStripMenuItem trainToolStripMenuItem1;
         private System.Windows.Forms.Label lblNoOfInputs;
         private System.Windows.Forms.Label lblNoOfCorrectGuesses;
+        private System.Windows.Forms.ToolStripMenuItem autoTrainToolStripMenuItem;
+        private System.Windows.Forms.Label lblNoOfIterations;
     }
 }
 

@@ -11,17 +11,17 @@ namespace CPULib
     public class Perceptron
     {
         public float[] Weights { get; private set; }
-        public float learningRate { get; private set; }
+        public float learningRate { get; set; }
 
-        public Perceptron(int size, float lr = 0.1F)
+        public Perceptron(int size=3, float lr = 0.1F)
         {
             Weights = new float[size];
             learningRate = lr;
             Random random = new Random();
 
-            //Init weights randomly
+            //Init weights randomly. ranged from -1.0F -> 1.0F
             for (int i = 0; i < size; i++)
-                Weights[i] = random.Next(-1, 1);
+                Weights[i] = ((float)random.NextDouble() * 2.0F -1.0F);
             
         }
 
@@ -51,7 +51,16 @@ namespace CPULib
             {
                 Weights[i] += error * inputs[i]*learningRate;
             }
+        }
 
+        public float GuessY(float x)
+        {
+            // y = m*x + b
+            float w0 = Weights[0];
+            float w1 = Weights[1];
+            float w2 = Weights[2];
+
+            return -(w2 / w1) - (w0/w1) * x;
 
         }
 

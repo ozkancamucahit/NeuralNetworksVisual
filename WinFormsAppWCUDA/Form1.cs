@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -22,13 +23,21 @@ namespace WinFormsAppWCUDA
 
         private static UInt32 numberOfCorrectGuesses = 0;
         private static UInt32 numberOfWrongGuesses = 0;
+        private static UInt32 numberOfIterations = 0;
+        public static Perceptron Brain { get; private set; } = new Perceptron(lr:0.5F);
 
+        public Graphics G { get; private set; }
 
-        public Perceptron Brain { get; private set; } = new Perceptron(2);
+        public float F(float x)
+        {
+            return  x + 80.0F;// + 0.2F;
+        }
+
         public Form1()
         {
             InitializeComponent();
             //Matrix<float> matrix = new Matrix<float>();
+            
 
         }
 
@@ -117,8 +126,13 @@ namespace WinFormsAppWCUDA
 
             if ( TrainMode == true)
             {
+                ReDrawSamples();
                 Train();
+                MakeAGuess();
+                DrawGuessedSeperatingLine();
                 lblNoOfCorrectGuesses.Text = $"# of correct guesses : {numberOfCorrectGuesses}";
+                numberOfCorrectGuesses = 0;
+                numberOfWrongGuesses = 0;
                 return;
             }
 
@@ -223,6 +237,7 @@ namespace WinFormsAppWCUDA
             btnSet.Enabled = true;
             lblNoOfInputs.Text = "";
             lblNoOfCorrectGuesses.Text = "";
+            lblNoOfIterations.Text = "";
             numberOfWrongGuesses = 0;
             numberOfCorrectGuesses = 0;
 
@@ -249,7 +264,7 @@ namespace WinFormsAppWCUDA
 
             btn_reset.Enabled = true;
             btnSet.Enabled = false;
-
+            
 
             //else samples = new Sample[numberOfInputs];
         }
@@ -300,6 +315,9 @@ namespace WinFormsAppWCUDA
         /// </summary>
         private void ReDrawSamples()
         {
+            pbCartesianBox.Refresh();
+            if (RandomMode || TrainMode) DrawSeperatingLine();
+
             foreach (var sample in samples)
             {
                 Point pointOnPictureBox = SampleToPoint(sample);
@@ -334,7 +352,7 @@ namespace WinFormsAppWCUDA
         }
 
         /// <summary>
-        /// Generates class3 or class4 samples
+        /// Generates class3 or class4 samples on cartesian space
         /// </summary>
         /// <param name="size">number of random samples</param>
         private void GenerateRandomPointsAndSamples(int size)
@@ -346,8 +364,12 @@ namespace WinFormsAppWCUDA
                 Sample sample = new Sample();
                 sample.X = point.X - pbCartesianBox.Width / 2;
                 sample.Y = pbCartesianBox.Height / 2 - point.Y;
+                sample.Bias = 1.0F;
 
-                if ((sample.X >= sample.Y)) sample.sampleID = CLASSID.CLASS3;
+                // apply function on cartesian space;
+                float lineY = F(sample.X);
+
+                if ((sample.Y >= lineY)) sample.sampleID = CLASSID.CLASS3;
                 else sample.sampleID = CLASSID.CLASS4;
 
                 AddSampleToList(sample);
@@ -367,12 +389,45 @@ namespace WinFormsAppWCUDA
 
             foreach (var sample in samples)
             {
-                float[] inputs = { sample.X,  sample.Y };//
+                float[] inputs = { sample.X,  sample.Y, sample.Bias };//
                 int sampleId = (int)sample.sampleID;//
 
                 int target = (sampleId == 3) ? 1 : -1;// map class id to sig function output
 
-                Brain.Train(inputs, target);//
+                Brain.Train(inputs, target);
+
+#if false
+                int guess = Brain.Guess(inputs);
+
+                if (guess == target)
+                {
+                    Pen pen = new Pen(Color.Green, THICKNESS);
+                    Point point = SampleToPoint(sample);
+                    DrawCrossGuess(pen, point.X, point.Y);
+                    ++numberOfCorrectGuesses;
+                }
+                else
+                {
+                    Pen pen = new Pen(Color.Red, THICKNESS);
+                    Point point = SampleToPoint(sample);
+                    DrawCrossGuess(pen, point.X, point.Y);
+                    ++numberOfWrongGuesses;
+                } 
+#endif
+
+            }
+            
+        }
+
+        private void MakeAGuess()
+        {
+            numberOfCorrectGuesses = 0;
+            foreach (var sample in samples)
+            {
+                float[] inputs = {  sample.X, sample.Y, sample.Bias };//
+                int sampleId = (int)sample.sampleID;//
+
+                int target = (sampleId == 3) ? 1 : -1;// map class id to sig function output
 
                 int guess = Brain.Guess(inputs);
 
@@ -390,9 +445,7 @@ namespace WinFormsAppWCUDA
                     DrawCrossGuess(pen, point.X, point.Y);
                     ++numberOfWrongGuesses;
                 }
-
             }
-            
         }
 
         private void btnRemoveSelected_MouseClick(object sender, MouseEventArgs e)
@@ -400,17 +453,63 @@ namespace WinFormsAppWCUDA
             
         }
 
+        /// <summary>
+        /// Draw seperating line on cartesian space.
+        /// </summary>
+        /// <see cref="GenerateRandomPointsAndSamples(int)"/>
         private void DrawSeperatingLine()
         {
             if (RandomMode || TrainMode)
             {
-                Point bottomLeft = new Point(0, pbCartesianBox.Height);
-                Point topRight = new Point(pbCartesianBox.Width, 0);
-                Pen pen = new Pen(Color.DarkOrange, THICKNESS);
+                Pen pen = new Pen(Color.Black, THICKNESS);
+                
+                // cartesian points
+                float leftX, leftY, rightX, rightY; 
+                //picturebox points
+                float leftXPb, leftYPb, rightXPb, rightYPb;
 
-                pbCartesianBox.CreateGraphics().DrawLine(pen, bottomLeft, topRight);
+                leftX = -pbCartesianBox.Width / 2;
+                leftY = F(leftX);
+
+                leftXPb = leftX + pbCartesianBox.Width / 2;
+                leftYPb = pbCartesianBox.Height / 2 - leftY;
+
+                rightX = pbCartesianBox.Width / 2;
+                rightY = F(rightX);
+
+                rightXPb = rightX + pbCartesianBox.Width / 2;
+                rightYPb = pbCartesianBox.Height / 2 - rightY;
+
+                G.DrawLine(pen, leftXPb, leftYPb, rightXPb, rightYPb);
             }
 
+        }
+
+        private void DrawGuessedSeperatingLine(  )
+        {
+            //pen to draw line
+            Pen pen = new Pen(Color.Orange, THICKNESS-2);
+
+            // cartesian points
+            float leftX, leftY, rightX, rightY;
+            //picturebox points
+            float leftXPb, leftYPb, rightXPb, rightYPb;
+
+            leftX = -pbCartesianBox.Width / 2;
+            leftY = Brain.GuessY(leftX);
+
+            leftXPb = leftX + pbCartesianBox.Width / 2;
+            leftYPb = pbCartesianBox.Height / 2 - leftY;
+
+            rightX = pbCartesianBox.Width / 2;
+            rightY = Brain.GuessY(rightX);
+
+
+            rightXPb = rightX + pbCartesianBox.Width / 2;
+            rightYPb = pbCartesianBox.Height / 2 - rightY;
+
+
+            G.DrawLine(pen, leftXPb, leftYPb, rightXPb, rightYPb);
         }
 
         private void btn_addWcpu_Click(object sender, EventArgs e)
@@ -420,7 +519,7 @@ namespace WinFormsAppWCUDA
 
         private void showToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            btn_reset_Click(null, null);
+            btn_reset_Click(sender, e);
 
             RandomMode = true;
             TrainMode = false;
@@ -428,6 +527,8 @@ namespace WinFormsAppWCUDA
             //Point topLeft = new Point(0, 0);
             //Point bottomRight = new Point(pbCartesianBox.Width, pbCartesianBox.Height);
 
+            if (G == null) G = pbCartesianBox.CreateGraphics();
+            
             DrawSeperatingLine();
 
             DrawRandomSamples();
@@ -441,14 +542,15 @@ namespace WinFormsAppWCUDA
             TrainMode = true;
             RandomMode = false;
 
-            GenerateRandomPointsAndSamples(16);
-            //RedrawSamplesCircle();
+            G = pbCartesianBox.CreateGraphics();
+            ResetList();
+            GenerateRandomPointsAndSamples(10);
             ReDrawSamples();
-            DrawSeperatingLine();
             WireUpList();
             //Train();
 
             lblNoOfInputs.Text = $"# of inputs:{samples.Count}";
+            lblNoOfCorrectGuesses.Text = "";
 
         }
 
@@ -463,11 +565,58 @@ namespace WinFormsAppWCUDA
                 WireUpList();
                 pbCartesianBox.Refresh();
 
+                if (RandomMode || TrainMode) DrawSeperatingLine();
+                
                 ReDrawSamples();
 
                 if (samples.Count == 0) btnRemoveSelected.Enabled = false;
             }
             btnRemoveSelected.Enabled = false;
+        }
+
+        
+        private static float prevRate = Brain.learningRate;
+        private static bool LearningRateChanged(float currentLr)
+        {
+            return (currentLr != prevRate);
+        }
+
+        private static UInt32 lineRunned = 0;
+        private void autoTrainToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            trainToolStripMenuItem1_Click(sender, e);
+            lblNoOfCorrectGuesses.Text = "";
+            var sw = Stopwatch.StartNew();
+            
+            while ( numberOfCorrectGuesses != samples.Count )
+            {
+                ReDrawSamples();
+                Train();
+                DrawGuessedSeperatingLine();
+                MakeAGuess();
+                if (numberOfCorrectGuesses > samples.Count * 0.85F)
+                {
+                    Brain.learningRate = 0.1F;
+                    if (LearningRateChanged(Brain.learningRate))
+                    {
+                        String str = $"Correct Guesses: {numberOfCorrectGuesses}/{samples.Count}, lr:{Brain.learningRate} at {numberOfIterations}th iteration";
+                        lblNoOfCorrectGuesses.Text = str;
+                        lineRunned++;
+                        lblNoOfCorrectGuesses.Refresh();
+                    }
+                    prevRate = Brain.learningRate;
+                }
+                Thread.Sleep(1);
+                ++numberOfIterations;
+            }
+
+            sw.Stop();
+
+            var elapsedS = sw.ElapsedMilliseconds / 1000;
+
+
+            lblNoOfIterations.Text = $"Number of iterations : {numberOfIterations}, time:{elapsedS}s";
+            lblNoOfIterations.Refresh();
         }
     }
 }

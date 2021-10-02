@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\addWithCuda.h" />
+    <ClInclude Include="inc\Matrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\unittest.cpp" />

@@ -5,6 +5,9 @@ using System.Text;
 namespace CPULib
 {
     public enum CLASSID { NULL, CLASS1, CLASS2, CLASS3, CLASS4}
+
+   
+
     public struct Sample
     {
         public Sample(int x_, int y_, CLASSID classId_)
@@ -12,10 +15,13 @@ namespace CPULib
             x = x_;
             y = y_;
             classID = classId_;
+            Bias = 1.0F;
         }
 
         int x, y;
         CLASSID classID;
+
+        public float Bias { get; set; }
 
         public string Name {
             get { return $"( {x},  {y})  -{classID}"; }
@@ -63,6 +69,8 @@ namespace CPULib
         {
             return base.ToString();
         }
+
+        
 
     }
     
