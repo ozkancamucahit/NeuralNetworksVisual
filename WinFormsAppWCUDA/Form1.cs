@@ -26,6 +26,7 @@ namespace WinFormsAppWCUDA
         private static UInt32 numberOfIterations = 0;
         public static Perceptron Brain { get; private set; } = new Perceptron(lr:0.5F);
 
+
         public Graphics G { get; private set; }
 
         public float F(float x)
@@ -37,7 +38,31 @@ namespace WinFormsAppWCUDA
         {
             InitializeComponent();
             //Matrix<float> matrix = new Matrix<float>();
+            Matrix m = new(3,2);
+            m.Randomize(0, 1);
+
+            ActivationFunction f = ActivationFunctions.SigmoidFunction;
+            m.Map(f);
+
             
+
+            
+            Matrix m2 = new(2,4);
+            m2.Randomize(0,1);
+            Matrix mul = m * m2;
+            m = new(3, 4);
+            m.Randomize(0,1);
+            m2 = m.Transpoze();
+            Matrix res = m.Emul(m2);
+
+            var nn = new NeuralNetwork(2, 2, 1);
+            float[] arr = { 1, 0};
+            var output = nn.FeedForward(Matrix.FromArrayToMatrix(arr), f);
+            Matrix v = Matrix.FromArrayToMatrix(arr);
+
+            Matrix m3 = new(3,2);
+            m3.Randomize(-2,1);
+            Matrix m3T = m3.Transpoze();
 
         }
 
@@ -230,7 +255,7 @@ namespace WinFormsAppWCUDA
         }
         private void btn_reset_Click(object sender, EventArgs e)
         {
-            comboxInputs.SelectedIndex = 0;
+            comboxInputs.SelectedIndex = -1;
             comboxInputs.Enabled = false;
             pbCartesianBox.Refresh();
             btn_reset.Enabled = false;
@@ -238,6 +263,7 @@ namespace WinFormsAppWCUDA
             lblNoOfInputs.Text = "";
             lblNoOfCorrectGuesses.Text = "";
             lblNoOfIterations.Text = "";
+            lblInputText.Text = "";
             numberOfWrongGuesses = 0;
             numberOfCorrectGuesses = 0;
 
@@ -427,9 +453,9 @@ namespace WinFormsAppWCUDA
                 float[] inputs = {  sample.X, sample.Y, sample.Bias };//
                 int sampleId = (int)sample.sampleID;//
 
-                int target = (sampleId == 3) ? 1 : -1;// map class id to sig function output
+                float target = (sampleId == 3) ? 1 : -1;// map class id to sig function output
 
-                int guess = Brain.Guess(inputs);
+                float guess = Brain.Guess(inputs);
 
                 if (guess == target)
                 {

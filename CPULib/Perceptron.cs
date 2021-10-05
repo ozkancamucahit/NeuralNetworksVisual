@@ -25,27 +25,23 @@ namespace CPULib
             
         }
 
-        public static int Sign( float n)
-        {
-            return (n >= 0.0F) ? 1 : -1;
-        }
 
         //Feedforward
-        public int Guess(float[] inputs)
+        public float Guess(float[] inputs)
         {
             float sum = 0.0F;
 
             for (int i = 0; i < Weights.Length; i++)
                 sum += inputs[i] * Weights[i];
 
-            int output = Sign(sum);
+            float output = ActivationFunctions.SignFunction(sum);
             return output;
         }
 
         public void Train(float [] inputs, int target)
         {
-            int guess = Guess(inputs);
-            int error = target - guess;
+            float guess = Guess(inputs);
+            float error = target - guess;
 
             for (int i = 0; i < Weights.Length; i++)
             {

@@ -79,7 +79,7 @@ namespace WinFormsAppWCUDA
             this.fileToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(924, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(896, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -96,13 +96,13 @@ namespace WinFormsAppWCUDA
             // nNToolStripMenuItem
             // 
             this.nNToolStripMenuItem.Name = "nNToolStripMenuItem";
-            this.nNToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.nNToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.nNToolStripMenuItem.Text = "NN";
             // 
             // loadWeightsToolStripMenuItem
             // 
             this.loadWeightsToolStripMenuItem.Name = "loadWeightsToolStripMenuItem";
-            this.loadWeightsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadWeightsToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.loadWeightsToolStripMenuItem.Text = "Load Weights";
             // 
             // toolStripMenuItem2
@@ -112,27 +112,27 @@ namespace WinFormsAppWCUDA
             this.trainToolStripMenuItem1,
             this.autoTrainToolStripMenuItem});
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(146, 22);
             this.toolStripMenuItem2.Text = "&Random";
             // 
             // showToolStripMenuItem1
             // 
             this.showToolStripMenuItem1.Name = "showToolStripMenuItem1";
-            this.showToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.showToolStripMenuItem1.Size = new System.Drawing.Size(125, 22);
             this.showToolStripMenuItem1.Text = "Show";
             this.showToolStripMenuItem1.Click += new System.EventHandler(this.showToolStripMenuItem1_Click);
             // 
             // trainToolStripMenuItem1
             // 
             this.trainToolStripMenuItem1.Name = "trainToolStripMenuItem1";
-            this.trainToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.trainToolStripMenuItem1.Size = new System.Drawing.Size(125, 22);
             this.trainToolStripMenuItem1.Text = "Train";
             this.trainToolStripMenuItem1.Click += new System.EventHandler(this.trainToolStripMenuItem1_Click);
             // 
             // autoTrainToolStripMenuItem
             // 
             this.autoTrainToolStripMenuItem.Name = "autoTrainToolStripMenuItem";
-            this.autoTrainToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.autoTrainToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.autoTrainToolStripMenuItem.Text = "AutoTrain";
             this.autoTrainToolStripMenuItem.Click += new System.EventHandler(this.autoTrainToolStripMenuItem_Click);
             // 
@@ -312,7 +312,7 @@ namespace WinFormsAppWCUDA
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(924, 452);
+            this.ClientSize = new System.Drawing.Size(896, 452);
             this.Controls.Add(this.lblNoOfIterations);
             this.Controls.Add(this.lblNoOfCorrectGuesses);
             this.Controls.Add(this.lblNoOfInputs);
@@ -360,7 +360,6 @@ namespace WinFormsAppWCUDA
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.ToolStripMenuItem trainToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem randomToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem showToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem trainToolStripMenuItem1;
