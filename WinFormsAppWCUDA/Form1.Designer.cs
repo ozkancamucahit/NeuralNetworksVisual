@@ -134,7 +134,7 @@ namespace WinFormsAppWCUDA
             this.autoTrainToolStripMenuItem.Name = "autoTrainToolStripMenuItem";
             this.autoTrainToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
             this.autoTrainToolStripMenuItem.Text = "AutoTrain";
-            this.autoTrainToolStripMenuItem.Click += new System.EventHandler(this.autoTrainToolStripMenuItem_Click);
+            this.autoTrainToolStripMenuItem.Click += new System.EventHandler(this.autoTrainToolStripMenuItem_ClickAsync);
             // 
             // trainToolStripMenuItem
             // 
@@ -328,6 +328,7 @@ namespace WinFormsAppWCUDA
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Neural Networks";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.pbCartesianBox)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();

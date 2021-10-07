@@ -20,12 +20,22 @@ namespace WinFormsAppWCUDA
         private List<Point> points = new List<Point>(); // points on the picture box
         public bool RandomMode { get; private set; }
         public bool TrainMode { get; private set; }
+        public bool AutoTrainStopped { get; private set; } = false;
 
         private static UInt32 numberOfCorrectGuesses = 0;
         private static UInt32 numberOfWrongGuesses = 0;
         private static UInt32 numberOfIterations = 0;
         public static Perceptron Brain { get; private set; } = new Perceptron(lr:0.5F);
+        public static Pen Pen_gs { get; set; } = new Pen(Color.Black, 1.5F);
 
+        public delegate void SafeCallDelegate();
+        public delegate void DelegateNumOfCorrectGuesses(string str);
+        public delegate void DelegateNumOfIterations(long milliseconds);
+        public delegate void DelegateSetBtnResetsText();
+
+
+
+        private Thread thread = null;
 
         public Graphics G { get; private set; }
 
@@ -37,7 +47,8 @@ namespace WinFormsAppWCUDA
         public Form1()
         {
             InitializeComponent();
-            //Matrix<float> matrix = new Matrix<float>();
+            G = pbCartesianBox.CreateGraphics();
+            
             Matrix m = new(3,2);
             m.Randomize(0, 1);
 
@@ -55,14 +66,11 @@ namespace WinFormsAppWCUDA
             m2 = m.Transpoze();
             Matrix res = m.Emul(m2);
 
-            var nn = new NeuralNetwork(2, 2, 1);
-            float[] arr = { 1, 0};
-            var output = nn.FeedForward(Matrix.FromArrayToMatrix(arr), f);
-            Matrix v = Matrix.FromArrayToMatrix(arr);
+            var nn = new NeuralNetwork(2, 2, 1, f);
+            float[] inputs = { 1, 0 };
+            float[] targets = { 1 };
 
-            Matrix m3 = new(3,2);
-            m3.Randomize(-2,1);
-            Matrix m3T = m3.Transpoze();
+            nn.Train(inputs, targets);
 
         }
 
@@ -76,19 +84,20 @@ namespace WinFormsAppWCUDA
             comboxInputs.Enabled = true;
             for (int i = 1; i <= maxClassNo; i++)
                 comboxInputs.Items.Add(Convert.ToString(i));
-            comboxInputs.SelectedIndex = 0;
+            comboxInputs.SelectedIndex = -1;
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            g.DrawLine(System.Drawing.Pens.Black,
+            //Pen_gs = new Pen(Color.Black, 1.5F);
+            Pen_gs.Color = Color.Black;
+            Pen_gs.Width = 1.5F;
+            g.DrawLine(Pen_gs,
                 pbCartesianBox.Width / 2, 0, pbCartesianBox.Width / 2, pbCartesianBox.Height);
 
-            g.DrawLine(System.Drawing.Pens.Black,
+            g.DrawLine(Pen_gs,
                 0, pbCartesianBox.Height / 2, pbCartesianBox.Width, pbCartesianBox.Height / 2);
-
-
         }
 
 
@@ -99,15 +108,15 @@ namespace WinFormsAppWCUDA
         private void DrawPlus(Pen pen, int posX, int posY)
         {
             //Pen pen = new Pen(Color.Black, thickness);
-            pbCartesianBox.CreateGraphics().DrawLine(pen, posX - LINE_LENGT, posY, posX + LINE_LENGT, posY); // draw horizontal line
-            pbCartesianBox.CreateGraphics().DrawLine(pen, posX, posY - LINE_LENGT, posX, posY + LINE_LENGT); // draw vertical line
+            G.DrawLine(pen, posX - LINE_LENGT, posY, posX + LINE_LENGT, posY); // draw horizontal line
+            G.DrawLine(pen, posX, posY - LINE_LENGT, posX, posY + LINE_LENGT); // draw vertical line
         }
 
         private void DrawCrossGuess(Pen pen, int posX, int posY)
         {
             //Pen pen = new Pen(Color.Black, thickness);
-            pbCartesianBox.CreateGraphics().DrawLine(pen, posX - LINE_LENGT/2, posY - LINE_LENGT/2, posX + LINE_LENGT/2, posY + LINE_LENGT/2); // draw horizontal line
-            pbCartesianBox.CreateGraphics().DrawLine(pen, posX - LINE_LENGT / 2, posY + LINE_LENGT/2, posX + LINE_LENGT / 2, posY - LINE_LENGT/2); // draw vertical line
+            G.DrawLine(pen, posX - LINE_LENGT/2, posY - LINE_LENGT/2, posX + LINE_LENGT/2, posY + LINE_LENGT/2); // draw horizontal line
+            G.DrawLine(pen, posX - LINE_LENGT / 2, posY + LINE_LENGT/2, posX + LINE_LENGT / 2, posY - LINE_LENGT/2); // draw vertical line
         }
 
 
@@ -120,14 +129,16 @@ namespace WinFormsAppWCUDA
 
         private void DrawRectangle(Sample sample)
         {
-            Pen pen = new Pen(Color.Black, THICKNESS-2.5F);
+            //pen = new Pen(Color.Black, THICKNESS-2.5F);
+            Pen_gs.Width = THICKNESS - 2.5F;
+            Pen_gs.Color = Color.Black;
 
             Point point = SampleToPoint(sample); // current sample
             Point topLineLeft = new Point(point.X - LINE_LENGT, point.Y - LINE_LENGT);
             Rectangle rectangle = new Rectangle(topLineLeft.X, topLineLeft.Y, (LINE_LENGT+1) * 2, (LINE_LENGT+1) * 2);
 
             
-            pbCartesianBox.CreateGraphics().DrawRectangle(pen, rectangle);
+            G.DrawRectangle(Pen_gs, rectangle);
 
             foreach (Sample s in samples)
             {
@@ -139,8 +150,8 @@ namespace WinFormsAppWCUDA
                 {
                     topLineLeft = new Point(other.X - LINE_LENGT, other.Y - LINE_LENGT);
                     rectangle = new Rectangle(topLineLeft.X, topLineLeft.Y, (LINE_LENGT + 1) * 2, (LINE_LENGT + 1) * 2);
-                    pen = new Pen(Color.White, THICKNESS - 2.5F);
-                    pbCartesianBox.CreateGraphics().DrawRectangle(pen, rectangle);
+                    Pen_gs.Color = Color.White;
+                    G.DrawRectangle(Pen_gs, rectangle);
                 }
             } 
 
@@ -148,6 +159,8 @@ namespace WinFormsAppWCUDA
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
+
+            if (G == null) G = pbCartesianBox.CreateGraphics();
 
             if ( TrainMode == true)
             {
@@ -167,7 +180,7 @@ namespace WinFormsAppWCUDA
             if (comboxInputs.SelectedItem != null)
                 selectedClass = Convert.ToInt32(comboxInputs.SelectedItem.ToString());
 
-            Pen pen;
+            //Pen pen;
             lboxSamples.Enabled = true;
             lblInputText.Text = $"x: {e.X}, y: {e.Y}";
             lblInputText.Visible = true;
@@ -175,29 +188,34 @@ namespace WinFormsAppWCUDA
             switch (selectedClass)
             {
                 case 1:
-                    pen = new Pen(Color.Red, THICKNESS);
-                    DrawPlus(pen, e.X, e.Y);
+                    //pen = new Pen(Color.Red, THICKNESS);
+                    Pen_gs.Color = Color.Red;
+                    Pen_gs.Width = THICKNESS;
+                    DrawPlus(Pen_gs, e.X, e.Y);
                     
                     AddSampleToList(new Sample(e.X - pbCartesianBox.Width/2, pbCartesianBox.Height/2 - e.Y, CLASSID.CLASS1));
                     break;
                 case 2:
-                    pen = new Pen(Color.Green, THICKNESS);
-                    DrawPlus(pen, e.X, e.Y);
+                    //pen = new Pen(Color.Green, THICKNESS);
+                    Pen_gs.Color = Color.Green;
+                    DrawPlus(Pen_gs, e.X, e.Y);
                     
                     AddSampleToList(new Sample(e.X - pbCartesianBox.Width/2, pbCartesianBox.Height/2 - e.Y, CLASSID.CLASS2));
 
                     break;
                 case 3:
-                    pen = new Pen(Color.Blue, THICKNESS);
-                    DrawPlus(pen, e.X, e.Y);
+                    //pen = new Pen(Color.Blue, THICKNESS);
+                    Pen_gs.Color = Color.Blue;
+                    DrawPlus(Pen_gs, e.X, e.Y);
                     
                     AddSampleToList(new Sample(e.X - pbCartesianBox.Width/2, pbCartesianBox.Height/2 - e.Y, CLASSID.CLASS3));
 
                     break;
 
                 case 4:
-                    pen = new Pen(Color.Brown, THICKNESS);
-                    DrawPlus(pen, e.X, e.Y);
+                    //pen = new Pen(Color.Brown, THICKNESS);
+                    Pen_gs.Color = Color.Brown;
+                    DrawPlus(Pen_gs, e.X, e.Y);
                     
                     AddSampleToList(new Sample(e.X - pbCartesianBox.Width/2, pbCartesianBox.Height/2 - e.Y, CLASSID.CLASS4));
 
@@ -226,6 +244,7 @@ namespace WinFormsAppWCUDA
             lboxSamples.DataSource = samples;
             lboxSamples.SelectedIndex = -1;
             lboxSamples.DisplayMember = "Name";
+            lboxSamples.Refresh();
             lboxSamples.SelectedIndexChanged += lboxSamples_SelectedIndexChanged;
 
             lboxSamples.ClearSelected();
@@ -238,11 +257,10 @@ namespace WinFormsAppWCUDA
         static extern int callCuda();
         private void btn_addWCuda_Click(object sender, EventArgs e)
         {
-            Stopwatch sw1 = new Stopwatch();
-            sw1.Start();
+            var sw = Stopwatch.StartNew();
             int status = callCuda();
-            sw1.Stop();
-            MessageBox.Show("Time it took :" + System.Convert.ToString(sw1.ElapsedMilliseconds));
+            sw.Stop();
+            MessageBox.Show("Time it took :" + System.Convert.ToString(sw.ElapsedMilliseconds));
 
         }
 
@@ -257,17 +275,34 @@ namespace WinFormsAppWCUDA
         {
             comboxInputs.SelectedIndex = -1;
             comboxInputs.Enabled = false;
-            pbCartesianBox.Refresh();
+
             btn_reset.Enabled = false;
             btnSet.Enabled = true;
-            lblNoOfInputs.Text = "";
-            lblNoOfCorrectGuesses.Text = "";
-            lblNoOfIterations.Text = "";
-            lblInputText.Text = "";
+            btn_reset.Text = "RESET";
+
+            if (!AutoTrainStopped) AutoTrainStopped = true;
+
             numberOfWrongGuesses = 0;
             numberOfCorrectGuesses = 0;
+            numberOfIterations = 0;
+            pbCartesianBox.Refresh();
+
+            lblNoOfInputs.Text = "";
+            lblNoOfInputs.Refresh();
+
+            lblNoOfCorrectGuesses.Text = "";
+            lblNoOfCorrectGuesses.Refresh();
+
+            lblNoOfIterations.Text = "";
+            lblNoOfIterations.Refresh();
+
+            lblInputText.Text = "";
+            lblInputText.Refresh();
+
 
             ResetList();
+
+            
 
             if (comboxNoOfClasses.SelectedItem != null)
             { 
@@ -309,33 +344,10 @@ namespace WinFormsAppWCUDA
         /// visualization for training. Only Two classes for seperating.
         /// Called From train sample
         /// </summary>
-        private void RedrawSamplesCircle()
-        {
 
-            SolidBrush blackBrush = new SolidBrush(Color.Black);
-
-            foreach (var sample in samples)
-            {
-                Point pointOnPictureBox = SampleToPoint(sample);
-
-                switch (sample.sampleID)
-                {
-                    case CLASSID.CLASS3:
-                        Pen pen = new Pen(Color.Black, THICKNESS-2);
-                        pbCartesianBox.CreateGraphics().DrawEllipse(pen, pointOnPictureBox.X, pointOnPictureBox.Y, LINE_LENGT, LINE_LENGT);
-                        break;
-                    case CLASSID.CLASS4:
-                        pbCartesianBox.CreateGraphics().FillEllipse(blackBrush, pointOnPictureBox.X, pointOnPictureBox.Y, LINE_LENGT, LINE_LENGT);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            DrawSeperatingLine();
-
-        }
-
+        Point pointOnPictureBox;
+        //Pen pen;
+        
         /// <summary>
         /// Called when sample is removed from sample data
         /// </summary>
@@ -344,31 +356,33 @@ namespace WinFormsAppWCUDA
             pbCartesianBox.Refresh();
             if (RandomMode || TrainMode) DrawSeperatingLine();
 
+            Pen_gs.Width = THICKNESS;
+
             foreach (var sample in samples)
             {
-                Point pointOnPictureBox = SampleToPoint(sample);
-                Pen pen;
+                pointOnPictureBox = SampleToPoint(sample);
 
                 switch (sample.sampleID)
                 {
                     case CLASSID.CLASS1:
-                        pen = new Pen(Color.Red, THICKNESS);
-                        DrawPlus(pen, pointOnPictureBox.X, pointOnPictureBox.Y);
+                        Pen_gs.Color = Color.Red;
+                        DrawPlus(Pen_gs, pointOnPictureBox.X, pointOnPictureBox.Y);
 
                         break;
                     case CLASSID.CLASS2:
-                        pen = new Pen(Color.Green, THICKNESS);
-                        DrawPlus(pen, pointOnPictureBox.X, pointOnPictureBox.Y);
+                        Pen_gs.Color = Color.Green;
+                        DrawPlus(Pen_gs, pointOnPictureBox.X, pointOnPictureBox.Y);
 
                         break;
                     case CLASSID.CLASS3:
-                        pen = new Pen(Color.Blue, THICKNESS);
-                        DrawPlus(pen, pointOnPictureBox.X, pointOnPictureBox.Y);
+                        //pen = new Pen(Color.Blue, THICKNESS);
+                        Pen_gs.Color = Color.Blue;
+                        DrawPlus(Pen_gs, pointOnPictureBox.X, pointOnPictureBox.Y);
 
                         break;
                     case CLASSID.CLASS4:
-                        pen = new Pen(Color.Brown, THICKNESS);
-                        DrawPlus(pen, pointOnPictureBox.X, pointOnPictureBox.Y);
+                        Pen_gs.Color = Color.Brown;
+                        DrawPlus(Pen_gs, pointOnPictureBox.X, pointOnPictureBox.Y);
 
                         break;
                     default:
@@ -410,12 +424,13 @@ namespace WinFormsAppWCUDA
             ReDrawSamples();
         }
 
+        float[] inputs;
         private void Train()
         {
 
             foreach (var sample in samples)
             {
-                float[] inputs = { sample.X,  sample.Y, sample.Bias };//
+                inputs = new float[] { sample.X,  sample.Y, sample.Bias };//
                 int sampleId = (int)sample.sampleID;//
 
                 int target = (sampleId == 3) ? 1 : -1;// map class id to sig function output
@@ -450,25 +465,29 @@ namespace WinFormsAppWCUDA
             numberOfCorrectGuesses = 0;
             foreach (var sample in samples)
             {
-                float[] inputs = {  sample.X, sample.Y, sample.Bias };//
+                inputs = new float [] {  sample.X, sample.Y, sample.Bias };//
                 int sampleId = (int)sample.sampleID;//
 
                 float target = (sampleId == 3) ? 1 : -1;// map class id to sig function output
 
                 float guess = Brain.Guess(inputs);
 
+                Pen_gs.Width = THICKNESS;
+
                 if (guess == target)
                 {
-                    Pen pen = new Pen(Color.Green, THICKNESS);
-                    Point point = SampleToPoint(sample);
-                    DrawCrossGuess(pen, point.X, point.Y);
+                    //pen = new Pen(Color.Green, THICKNESS);
+                    Pen_gs.Color = Color.Green;
+                    pointOnPictureBox = SampleToPoint(sample);
+                    DrawCrossGuess(Pen_gs, pointOnPictureBox.X, pointOnPictureBox.Y);
                     ++numberOfCorrectGuesses;
                 }
                 else
                 {
-                    Pen pen = new Pen(Color.Red, THICKNESS);
-                    Point point = SampleToPoint(sample);
-                    DrawCrossGuess(pen, point.X, point.Y);
+                    //pen = new Pen(Color.Red, THICKNESS);
+                    Pen_gs.Color = Color.Red;
+                    pointOnPictureBox = SampleToPoint(sample);
+                    DrawCrossGuess(Pen_gs, pointOnPictureBox.X, pointOnPictureBox.Y);
                     ++numberOfWrongGuesses;
                 }
             }
@@ -487,7 +506,9 @@ namespace WinFormsAppWCUDA
         {
             if (RandomMode || TrainMode)
             {
-                Pen pen = new Pen(Color.Black, THICKNESS);
+                Pen_gs.Width = THICKNESS;
+                //pen = new Pen(Color.Black, THICKNESS);
+                Pen_gs.Color = Color.Black;
                 
                 // cartesian points
                 float leftX, leftY, rightX, rightY; 
@@ -506,15 +527,16 @@ namespace WinFormsAppWCUDA
                 rightXPb = rightX + pbCartesianBox.Width / 2;
                 rightYPb = pbCartesianBox.Height / 2 - rightY;
 
-                G.DrawLine(pen, leftXPb, leftYPb, rightXPb, rightYPb);
+                G.DrawLine(Pen_gs, leftXPb, leftYPb, rightXPb, rightYPb);
             }
 
         }
 
+        
+        //Pen penGuessed = new Pen(Color.Orange, THICKNESS-2);
         private void DrawGuessedSeperatingLine(  )
         {
             //pen to draw line
-            Pen pen = new Pen(Color.Orange, THICKNESS-2);
 
             // cartesian points
             float leftX, leftY, rightX, rightY;
@@ -533,9 +555,10 @@ namespace WinFormsAppWCUDA
 
             rightXPb = rightX + pbCartesianBox.Width / 2;
             rightYPb = pbCartesianBox.Height / 2 - rightY;
+            Pen_gs.Width = THICKNESS - 2;
+            Pen_gs.Color = Color.Orange;
 
-
-            G.DrawLine(pen, leftXPb, leftYPb, rightXPb, rightYPb);
+            G.DrawLine(Pen_gs, leftXPb, leftYPb, rightXPb, rightYPb);
         }
 
         private void btn_addWcpu_Click(object sender, EventArgs e)
@@ -568,12 +591,11 @@ namespace WinFormsAppWCUDA
             TrainMode = true;
             RandomMode = false;
 
-            G = pbCartesianBox.CreateGraphics();
+            if (G == null) G = pbCartesianBox.CreateGraphics();
             ResetList();
             GenerateRandomPointsAndSamples(10);
             ReDrawSamples();
             WireUpList();
-            //Train();
 
             lblNoOfInputs.Text = $"# of inputs:{samples.Count}";
             lblNoOfCorrectGuesses.Text = "";
@@ -608,13 +630,20 @@ namespace WinFormsAppWCUDA
         }
 
         private static UInt32 lineRunned = 0;
-        private void autoTrainToolStripMenuItem_Click(object sender, EventArgs e)
+        private void autoTrainToolStripMenuItem_ClickAsync(object sender, EventArgs e)
         {
+            
+            AutoTrainStopped = false;
             trainToolStripMenuItem1_Click(sender, e);
             lblNoOfCorrectGuesses.Text = "";
-            var sw = Stopwatch.StartNew();
-            
-            while ( numberOfCorrectGuesses != samples.Count )
+            lblNoOfIterations.Text = "";
+            btn_reset.Text = "STOP";
+            //btn_reset.Text = "Stop";
+            thread = new Thread(new ThreadStart(AutoTrainAsync));
+            thread.Start();
+            //AutoTrainAsync();
+#if false
+            while ((numberOfCorrectGuesses != samples.Count) && (!AutoTrainStopped))
             {
                 ReDrawSamples();
                 Train();
@@ -629,20 +658,92 @@ namespace WinFormsAppWCUDA
                         lblNoOfCorrectGuesses.Text = str;
                         lineRunned++;
                         lblNoOfCorrectGuesses.Refresh();
+                        prevRate = Brain.learningRate;
                     }
-                    prevRate = Brain.learningRate;
                 }
-                Thread.Sleep(1);
+                Thread.Sleep(12);
                 ++numberOfIterations;
+            } 
+#endif
+
+            //Pen_gs.Dispose();
+            //G.Dispose();
+            //G = null;
+            
+
+
+            //lblNoOfIterations.Text = $"Number of iterations : {numberOfIterations}, time:{elapsedS}s";
+            lblNoOfIterations.Refresh();
+        }
+
+        private void AutoTrainAsync()
+        {
+            var sw = Stopwatch.StartNew();
+
+            var ReDrawSamplesSafe = new SafeCallDelegate(ReDrawSamples);
+            var DrawGuessedSeperatingLineSafe = new SafeCallDelegate(DrawGuessedSeperatingLine);
+            var MakeAGuessSafe = new SafeCallDelegate(MakeAGuess);
+            var SetLblNoOfCorrectGuessesTextSafe = new DelegateNumOfCorrectGuesses(SetLblNoOfCorrectGuessesText);
+            var SetLblNoOfIterationsTextSafe = new DelegateNumOfIterations(SetLblNoOfIterationsText);
+            var SetResetButtonTextAfterAutoTrainSafe = new DelegateSetBtnResetsText(SetResetButtonTextAfterAutoTrain);
+
+
+            while ((numberOfCorrectGuesses != samples.Count) && (!AutoTrainStopped))
+            {
+                pbCartesianBox.Invoke(ReDrawSamplesSafe);
+                //ReDrawSamples();
+                Train();
+                pbCartesianBox.Invoke(DrawGuessedSeperatingLineSafe);
+
+                pbCartesianBox.Invoke(MakeAGuessSafe);
+
+                if (numberOfCorrectGuesses > samples.Count * 0.85F)
+                {
+                    Brain.learningRate = 0.1F;
+                    if (LearningRateChanged(Brain.learningRate))
+                    {
+                        String str = $"Correct Guesses: {numberOfCorrectGuesses}/{samples.Count}, lr:{Brain.learningRate} at {numberOfIterations}th iteration";
+                        lblNoOfCorrectGuesses.Invoke(SetLblNoOfCorrectGuessesTextSafe, str);
+                        lineRunned++;
+                        prevRate = Brain.learningRate;
+                    }
+                }
+                Thread.Sleep(12);
+                numberOfIterations++;
             }
 
             sw.Stop();
+            var elapsedMs = sw.ElapsedMilliseconds;
+            lblNoOfIterations.Invoke(SetLblNoOfIterationsTextSafe, elapsedMs);
+            numberOfCorrectGuesses = 0;
+            numberOfWrongGuesses = 0;
+            numberOfIterations = 0;
 
-            var elapsedS = sw.ElapsedMilliseconds / 1000;
+            btn_reset.Invoke(SetResetButtonTextAfterAutoTrainSafe);
+            AutoTrainStopped = true;
 
+        }
 
-            lblNoOfIterations.Text = $"Number of iterations : {numberOfIterations}, time:{elapsedS}s";
+        private void SetResetButtonTextAfterAutoTrain()
+        {
+            if (AutoTrainStopped) btn_reset.Text = "RESET";
+            else btn_reset.Text = "STOP";
+        }
+
+        private void SetLblNoOfCorrectGuessesText(String str)
+        {
+            lblNoOfCorrectGuesses.Text = str;
+            lblNoOfCorrectGuesses.Refresh();
+        }
+
+        private void SetLblNoOfIterationsText(long elapsedMs)
+        {
+            lblNoOfIterations.Text = $"Number of iterations : {numberOfIterations}, time:{elapsedMs}ms";
             lblNoOfIterations.Refresh();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
         }
     }
 }

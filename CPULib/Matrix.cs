@@ -104,6 +104,22 @@ namespace CPULib
         }
 
         //
+        public static Matrix Transpoze(Matrix matrix)
+        {
+            Matrix mRet = new Matrix(matrix.Cols, matrix.Rows);
+
+            for (int r = 0; r < matrix.Rows; r++)
+            {
+                for (int c = 0; c < matrix.Cols; c++)
+                {
+                    // mret[c][r] = matrix[r][c]
+                    mRet.Data[r + c * mRet.Cols] = matrix.Data[c + r * matrix.Cols];
+                }
+            }
+            return mRet;
+        }
+
+        //
         public static Matrix operator * (Matrix matrixL, Matrix matrixR)
         {
             if ( matrixL.Cols != matrixR.Rows) return null;
