@@ -49,28 +49,46 @@ namespace WinFormsAppWCUDA
             InitializeComponent();
             G = pbCartesianBox.CreateGraphics();
             
-            Matrix m = new(3,2);
+            Matrix m = new(2,2);
             m.Randomize(0, 1);
 
-            ActivationFunction f = ActivationFunctions.SigmoidFunction;
-            m.Map(f);
+            ActivationFunction activationFunction = ActivationFunctions.SigmoidFunction;
+            ActivationFunction activationFunctionDerivative = ActivationFunctions.SigmoidFunctionDerivative;
 
+            //m.MakeIdentity();
+            //m.Map(activationFunctionDerivative);
+            //m.MakeIdentity();
+            //m.Map(activationFunction);
+            //m.MakeIdentity();
+            //m.Scale(2);
+            //m.Add(3);
+            //Matrix m2 = Matrix.GenerateRandomMatrix(2,2, -1,1);
+            //m2.MakeIdentity();
+            //m.Emul(m2);
+            //Matrix res = Matrix.Subtract(m, m2);
+
+            TrainingSet set1 = new TrainingSet(new float[] { 0, 0 }, new float[] { 0 });
+            TrainingSet set2 = new TrainingSet(new float[] { 0, 1 }, new float[] { 1 });
+            TrainingSet set3 = new TrainingSet(new float[] { 1, 0 }, new float[] { 1 });
+            TrainingSet set4 = new TrainingSet(new float[] { 1, 1 }, new float[] { 0 });
+
+            TrainingSet[] trainingData = { set1, set2, set3, set4 };
+
+            var nn = new NeuralNetwork(2, 4, 1, activationFunction, activationFunctionDerivative, 0.1F);
+            Random random = new Random();
             
+            for (int i = 0; i < 20_000; i++)
+            {
+                var index = random.Next(trainingData.Length);
+                nn.Train(trainingData[index].Inputs, trainingData[index].Targets);
+                
+            }
 
-            
-            Matrix m2 = new(2,4);
-            m2.Randomize(0,1);
-            Matrix mul = m * m2;
-            m = new(3, 4);
-            m.Randomize(0,1);
-            m2 = m.Transpoze();
-            Matrix res = m.Emul(m2);
+            float[] res1 = nn.FeedForward(set1.Inputs);
+            float[] res2 = nn.FeedForward(set2.Inputs);
+            float[] res3 = nn.FeedForward(set3.Inputs);
+            float[] res4 = nn.FeedForward(set4.Inputs);
 
-            var nn = new NeuralNetwork(2, 2, 1, f);
-            float[] inputs = { 1, 0 };
-            float[] targets = { 1 };
-
-            nn.Train(inputs, targets);
 
         }
 
@@ -278,7 +296,8 @@ namespace WinFormsAppWCUDA
 
             btn_reset.Enabled = false;
             btnSet.Enabled = true;
-            btn_reset.Text = "RESET";
+
+            //btn_reset.Text = "RESET";
 
             if (!AutoTrainStopped) AutoTrainStopped = true;
 
@@ -558,7 +577,8 @@ namespace WinFormsAppWCUDA
             Pen_gs.Width = THICKNESS - 2;
             Pen_gs.Color = Color.Orange;
 
-            G.DrawLine(Pen_gs, leftXPb, leftYPb, rightXPb, rightYPb);
+            if ( (!AutoTrainStopped) || TrainMode )
+                G.DrawLine(Pen_gs, leftXPb, leftYPb, rightXPb, rightYPb);
         }
 
         private void btn_addWcpu_Click(object sender, EventArgs e)
@@ -593,7 +613,7 @@ namespace WinFormsAppWCUDA
 
             if (G == null) G = pbCartesianBox.CreateGraphics();
             ResetList();
-            GenerateRandomPointsAndSamples(10);
+            GenerateRandomPointsAndSamples(100);
             ReDrawSamples();
             WireUpList();
 
@@ -641,39 +661,7 @@ namespace WinFormsAppWCUDA
             //btn_reset.Text = "Stop";
             thread = new Thread(new ThreadStart(AutoTrainAsync));
             thread.Start();
-            //AutoTrainAsync();
-#if false
-            while ((numberOfCorrectGuesses != samples.Count) && (!AutoTrainStopped))
-            {
-                ReDrawSamples();
-                Train();
-                DrawGuessedSeperatingLine();
-                MakeAGuess();
-                if (numberOfCorrectGuesses > samples.Count * 0.85F)
-                {
-                    Brain.learningRate = 0.1F;
-                    if (LearningRateChanged(Brain.learningRate))
-                    {
-                        String str = $"Correct Guesses: {numberOfCorrectGuesses}/{samples.Count}, lr:{Brain.learningRate} at {numberOfIterations}th iteration";
-                        lblNoOfCorrectGuesses.Text = str;
-                        lineRunned++;
-                        lblNoOfCorrectGuesses.Refresh();
-                        prevRate = Brain.learningRate;
-                    }
-                }
-                Thread.Sleep(12);
-                ++numberOfIterations;
-            } 
-#endif
-
-            //Pen_gs.Dispose();
-            //G.Dispose();
-            //G = null;
-            
-
-
-            //lblNoOfIterations.Text = $"Number of iterations : {numberOfIterations}, time:{elapsedS}s";
-            lblNoOfIterations.Refresh();
+            //lblNoOfIterations.Refresh();
         }
 
         private void AutoTrainAsync()
@@ -691,7 +679,6 @@ namespace WinFormsAppWCUDA
             while ((numberOfCorrectGuesses != samples.Count) && (!AutoTrainStopped))
             {
                 pbCartesianBox.Invoke(ReDrawSamplesSafe);
-                //ReDrawSamples();
                 Train();
                 pbCartesianBox.Invoke(DrawGuessedSeperatingLineSafe);
 
@@ -714,13 +701,15 @@ namespace WinFormsAppWCUDA
 
             sw.Stop();
             var elapsedMs = sw.ElapsedMilliseconds;
+            AutoTrainStopped = true;
+            btn_reset.Invoke(SetResetButtonTextAfterAutoTrainSafe);
             lblNoOfIterations.Invoke(SetLblNoOfIterationsTextSafe, elapsedMs);
+
             numberOfCorrectGuesses = 0;
             numberOfWrongGuesses = 0;
             numberOfIterations = 0;
 
-            btn_reset.Invoke(SetResetButtonTextAfterAutoTrainSafe);
-            AutoTrainStopped = true;
+
 
         }
 
@@ -738,8 +727,15 @@ namespace WinFormsAppWCUDA
 
         private void SetLblNoOfIterationsText(long elapsedMs)
         {
+            if (btn_reset.Text == "STOP")
+            { 
+                lblNoOfIterations.Text = "";
+                return;
+            }
+
             lblNoOfIterations.Text = $"Number of iterations : {numberOfIterations}, time:{elapsedMs}ms";
             lblNoOfIterations.Refresh();
+            //lblNoOfIterations.Text = "";
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

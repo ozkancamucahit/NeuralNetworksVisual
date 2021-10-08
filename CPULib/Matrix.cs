@@ -69,21 +69,35 @@ namespace CPULib
         }
 
         //
-        public Matrix Emul( Matrix other)
+        public void Emul( Matrix other)
         {
 
             if( (this.Cols != other.Cols) && (this.Rows != other.Rows) )
-                return null;
+                {
+                    this.Data = null;
+                }
             
-		    Matrix mRet = new Matrix( other.Rows, other.Cols);
+		    //Matrix mRet = new Matrix( other.Rows, other.Cols);
 
-            if ( mRet.Data == null) return null;
+            //if ( mRet.Data == null) return null;
 
 		    for (int r = 0; r < other.Rows; r++)
 			    for (int c = 0; c < other.Cols; c++)
-				    mRet.Data[ c + r * Cols] = this.Data[ c + r * Cols] * other.Data[ c + r * Cols];
+				    this.Data[ c + r * Cols] *=other.Data[ c + r * Cols];
 		    
-            return mRet;
+            //return mRet;
+        }
+
+        //
+        public void Scale(float x)
+        {
+            for (int r = 0; r < Rows; r++)
+            {
+                for (int c = 0; c < Cols; c++)
+                {
+                    this.Data[ c + r * Cols] *= x;
+                }
+            }
         }
 
         //
@@ -183,6 +197,22 @@ namespace CPULib
                 }
             }
         }
+
+        public static Matrix Map( Matrix matrix, ActivationFunction f)
+        {
+            var mRet = new Matrix(matrix.Rows, matrix.Cols);
+
+            for (int r = 0; r < matrix.Rows; r++)
+            {
+                for (int c = 0; c < matrix.Cols; c++)
+                {
+                    var value = matrix.Data[ c + r * matrix.Cols];
+                    var output = f(value);
+                    mRet.Data[ c + r * mRet.Cols] = output;
+                }
+            }
+            return mRet;
+        }
   
         //
         public static Matrix GenerateRandomMatrix(int rows, int cols, float min, float max)
@@ -205,6 +235,7 @@ namespace CPULib
         //
         public void Add(Matrix other)
         {
+            // matrices must be same size
             //this[r][c] += other[r][c]
 
             for (int r = 0; r < other.Rows; r++)
@@ -212,6 +243,14 @@ namespace CPULib
                     this.Data[c + r * Cols] += other.Data[c + r * Cols];
         }
 
+        //
+        public void Add(float num)
+        {
+            for (int r = 0; r < this.Rows; r++)
+                for (int c = 0; c < this.Cols; c++)
+                    this.Data[c + r * Cols] += num;
+        }
+        
         //
         public static Matrix Subtract(Matrix left, Matrix right)
         {
@@ -224,7 +263,8 @@ namespace CPULib
                 for (int c = 0; c < left.Cols; c++)
                 {
                     // mret[r][c] = left[r][c] - right[r][c]
-                    mRet.Data[c + r * mRet.Cols] = left.Data[c + r * left.Cols] - right.Data[c + r * right.Cols];
+                    mRet.Data[c + r * mRet.Cols] = left.Data[c + r * left.Cols]
+                     - right.Data[c + r * right.Cols];
                 }
             }
             return mRet;
@@ -249,13 +289,15 @@ namespace CPULib
         //
         public float[] ToArray()
         {
-            List<float> list = new List<float>(Rows * Cols);
+            List<float> list = new List<float>(this.Rows * this.Cols);
+            float[] arrayRet = new float[this.Rows * this.Cols];
 
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Cols; c++)
                 {
-                    list.Add( Data[c + r * Cols]);
+                    list.Add(this.Data[c + r * Cols]);
+                    arrayRet[c + r*this.Cols] = this.Data[c + r * Cols];
                 }
             }
             return list.ToArray();
