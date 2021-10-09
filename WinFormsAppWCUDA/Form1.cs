@@ -27,15 +27,22 @@ namespace WinFormsAppWCUDA
         private static UInt32 numberOfIterations = 0;
         public static Perceptron Brain { get; private set; } = new Perceptron(lr:0.5F);
         public static Pen Pen_gs { get; set; } = new Pen(Color.Black, 1.5F);
+        public static SolidBrush Brus_gs { get; set; } = new SolidBrush(Color.White);
 
         public delegate void SafeCallDelegate();
         public delegate void DelegateNumOfCorrectGuesses(string str);
         public delegate void DelegateNumOfIterations(long milliseconds);
         public delegate void DelegateSetBtnResetsText();
+        public delegate void DelegateDrawRectangle(Rectangle rectangle);
+
+        public NeuralNetwork NeuralNet { get; private set; }
 
 
 
+        //thread for autotrain
         private Thread thread = null;
+        public Thread ThreadTrainXOR { get; private set; }
+        public Thread ThreadDrawXOR { get; private set; }
 
         public Graphics G { get; private set; }
 
@@ -55,39 +62,28 @@ namespace WinFormsAppWCUDA
             ActivationFunction activationFunction = ActivationFunctions.SigmoidFunction;
             ActivationFunction activationFunctionDerivative = ActivationFunctions.SigmoidFunctionDerivative;
 
-            //m.MakeIdentity();
-            //m.Map(activationFunctionDerivative);
-            //m.MakeIdentity();
-            //m.Map(activationFunction);
-            //m.MakeIdentity();
-            //m.Scale(2);
-            //m.Add(3);
-            //Matrix m2 = Matrix.GenerateRandomMatrix(2,2, -1,1);
-            //m2.MakeIdentity();
-            //m.Emul(m2);
-            //Matrix res = Matrix.Subtract(m, m2);
+            NeuralNet = new NeuralNetwork(2, 4, 1, activationFunction, activationFunctionDerivative, 0.1F);
 
-            TrainingSet set1 = new TrainingSet(new float[] { 0, 0 }, new float[] { 0 });
-            TrainingSet set2 = new TrainingSet(new float[] { 0, 1 }, new float[] { 1 });
-            TrainingSet set3 = new TrainingSet(new float[] { 1, 0 }, new float[] { 1 });
-            TrainingSet set4 = new TrainingSet(new float[] { 1, 1 }, new float[] { 0 });
+            //var nn = new NeuralNetwork(2, 4, 1, activationFunction, activationFunctionDerivative, 0.1F);
+            //Random random = new Random();
+            //TrainingSet set1 = new TrainingSet(new float[] { 0, 0 }, new float[] { 0 });
+            //TrainingSet set2 = new TrainingSet(new float[] { 0, 1 }, new float[] { 1 });
+            //TrainingSet set3 = new TrainingSet(new float[] { 1, 0 }, new float[] { 1 });
+            //TrainingSet set4 = new TrainingSet(new float[] { 1, 1 }, new float[] { 0 });
 
-            TrainingSet[] trainingData = { set1, set2, set3, set4 };
+            //TrainingSet[] trainingData = { set1, set2, set3, set4 };
 
-            var nn = new NeuralNetwork(2, 4, 1, activationFunction, activationFunctionDerivative, 0.1F);
-            Random random = new Random();
-            
-            for (int i = 0; i < 20_000; i++)
-            {
-                var index = random.Next(trainingData.Length);
-                nn.Train(trainingData[index].Inputs, trainingData[index].Targets);
-                
-            }
+            //for (int i = 0; i < 20_000; i++)
+            //{
+            //    var index = random.Next(trainingData.Length);
+            //    NeuralNet.Train(trainingData[index].Inputs, trainingData[index].Targets);
 
-            float[] res1 = nn.FeedForward(set1.Inputs);
-            float[] res2 = nn.FeedForward(set2.Inputs);
-            float[] res3 = nn.FeedForward(set3.Inputs);
-            float[] res4 = nn.FeedForward(set4.Inputs);
+            //}
+
+            //float[] res1 = NeuralNet.FeedForward(set1.Inputs);
+            //float[] res2 = NeuralNet.FeedForward(set2.Inputs);
+            //float[] res3 = NeuralNet.FeedForward(set3.Inputs);
+            //float[] res4 = NeuralNet.FeedForward(set4.Inputs);
 
 
         }
@@ -293,6 +289,9 @@ namespace WinFormsAppWCUDA
         {
             comboxInputs.SelectedIndex = -1;
             comboxInputs.Enabled = false;
+
+            comboxNoOfClasses.SelectedIndex = -1;
+            comboxNoOfClasses.Enabled = true;
 
             btn_reset.Enabled = false;
             btnSet.Enabled = true;
@@ -659,7 +658,9 @@ namespace WinFormsAppWCUDA
             lblNoOfIterations.Text = "";
             btn_reset.Text = "STOP";
             //btn_reset.Text = "Stop";
+
             thread = new Thread(new ThreadStart(AutoTrainAsync));
+            thread.Name = "AutoTrain";
             thread.Start();
             //lblNoOfIterations.Refresh();
         }
@@ -702,8 +703,9 @@ namespace WinFormsAppWCUDA
             sw.Stop();
             var elapsedMs = sw.ElapsedMilliseconds;
             AutoTrainStopped = true;
-            btn_reset.Invoke(SetResetButtonTextAfterAutoTrainSafe);
+
             lblNoOfIterations.Invoke(SetLblNoOfIterationsTextSafe, elapsedMs);
+            btn_reset.Invoke(SetResetButtonTextAfterAutoTrainSafe);
 
             numberOfCorrectGuesses = 0;
             numberOfWrongGuesses = 0;
@@ -741,5 +743,125 @@ namespace WinFormsAppWCUDA
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
         }
+
+        int resolution = 10;
+        Color brushColor;
+        private void xORExampleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            AutoTrainStopped = false;
+            numberOfIterations = 0;
+
+            ThreadDrawXOR = new Thread(new ThreadStart(GenerateRandomRectangles));
+            ThreadDrawXOR.Name = "ThreadXORDrawRect";
+            ThreadDrawXOR.Start();
+
+            ThreadTrainXOR = new Thread(new ThreadStart(TrainXor));
+            ThreadTrainXOR.Name = "ThreadTrainXOR";
+            ThreadTrainXOR.Start();
+
+            btn_reset.Enabled = true;
+            comboxNoOfClasses.Enabled = false;
+            
+        }
+
+        /// <summary>
+        /// Runs on different thread.
+        /// </summary>
+        private void GenerateRandomRectangles()
+        {
+            float cols = pbCartesianBox.Width / resolution;
+            float rows = pbCartesianBox.Height / resolution;
+
+            var DrawRectangleSafe = new DelegateDrawRectangle(DrawRectangle);
+            var ReDrawSamplesSafe = new SafeCallDelegate(ReDrawSamples);
+            Random random = new();
+            Rectangle rectangle = new Rectangle();
+            int random_value;
+
+            float x1, x2;
+            float[] inputs;
+
+            ThreadTrainXOR.Join();
+
+            TrainingSet set1 = new TrainingSet(new float[] { 0, 0 }, new float[] { 0 });
+            TrainingSet set2 = new TrainingSet(new float[] { 0, 1 }, new float[] { 1 });
+            TrainingSet set3 = new TrainingSet(new float[] { 1, 0 }, new float[] { 1 });
+            TrainingSet set4 = new TrainingSet(new float[] { 1, 1 }, new float[] { 0 });
+
+            TrainingSet[] trainingData = { set1, set2, set3, set4 };
+
+            
+
+            while ( !AutoTrainStopped)
+            {
+
+                for (int i = 0; i < 10; i++)
+                {
+                    var index = random.Next(trainingData.Length);
+                    NeuralNet.Train(trainingData[index].Inputs, trainingData[index].Targets);
+                    numberOfIterations++;
+                }
+
+                if ( numberOfIterations % 10_000 == 0)
+                {
+                    for (int i = 0; i < cols; i++)
+                    {
+                        for (int j = 0; j < rows; j++)
+                        {
+
+                            x1 = i / cols;
+                            x2 = j / rows;
+                            inputs = new float[] { x1, x2 };
+                            var y = NeuralNet.FeedForward(inputs);
+
+                            float res = y[0] * 255;
+                            int den = (int)res;
+                            random_value = random.Next((int)res);
+                            brushColor = Color.FromArgb(random_value, random_value, random_value);
+                            Brus_gs.Color = brushColor;
+
+                            rectangle.X = i * resolution;
+                            rectangle.Y = j * resolution;
+                            rectangle.Width = resolution;
+                            rectangle.Height = resolution;
+                            //G.FillRectangle(Brus_gs, i * resolution, j * resolution, resolution, resolution);
+                            pbCartesianBox.Invoke(DrawRectangleSafe, rectangle);
+                        }
+                    } 
+                }
+                
+            }
+
+            pbCartesianBox.Invoke(ReDrawSamplesSafe);
+
+        }
+
+        private void DrawRectangle( Rectangle rect)
+        {
+            G.FillRectangle(Brus_gs, rect);
+        }
+
+        private void TrainXor()
+        {
+            Random random = new Random();
+
+            TrainingSet set1 = new TrainingSet(new float[] { 0, 0 }, new float[] { 0 });
+            TrainingSet set2 = new TrainingSet(new float[] { 0, 1 }, new float[] { 1 });
+            TrainingSet set3 = new TrainingSet(new float[] { 1, 0 }, new float[] { 1 });
+            TrainingSet set4 = new TrainingSet(new float[] { 1, 1 }, new float[] { 0 });
+
+            TrainingSet[] trainingData = { set1, set2, set3, set4 };
+
+
+            for (int i = 0; i < 10_000; i++)
+            {
+                var index = random.Next(trainingData.Length);
+                NeuralNet.Train(trainingData[index].Inputs, trainingData[index].Targets); 
+            }
+            
+        }
+
+
     }
 }

@@ -95,7 +95,7 @@ namespace CPULib
             var inputs_T = Matrix.Transpoze(inputs);
             var Weights_ih_deltas = hidden_gradient * inputs_T;
 
-            if(count % 5_000 == 0)
+            if (count == 100)
             {
                 Matrix m = Matrix.GenerateRandomMatrix(1, 1, 1, 2);
             }

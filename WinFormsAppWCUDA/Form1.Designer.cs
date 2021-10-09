@@ -57,6 +57,7 @@ namespace WinFormsAppWCUDA
             this.lblNoOfInputs = new System.Windows.Forms.Label();
             this.lblNoOfCorrectGuesses = new System.Windows.Forms.Label();
             this.lblNoOfIterations = new System.Windows.Forms.Label();
+            this.xORExampleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pbCartesianBox)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -96,13 +97,13 @@ namespace WinFormsAppWCUDA
             // nNToolStripMenuItem
             // 
             this.nNToolStripMenuItem.Name = "nNToolStripMenuItem";
-            this.nNToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.nNToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.nNToolStripMenuItem.Text = "NN";
             // 
             // loadWeightsToolStripMenuItem
             // 
             this.loadWeightsToolStripMenuItem.Name = "loadWeightsToolStripMenuItem";
-            this.loadWeightsToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.loadWeightsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadWeightsToolStripMenuItem.Text = "Load Weights";
             // 
             // toolStripMenuItem2
@@ -110,29 +111,30 @@ namespace WinFormsAppWCUDA
             this.toolStripMenuItem2.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.showToolStripMenuItem1,
             this.trainToolStripMenuItem1,
-            this.autoTrainToolStripMenuItem});
+            this.autoTrainToolStripMenuItem,
+            this.xORExampleToolStripMenuItem});
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(146, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItem2.Text = "&Random";
             // 
             // showToolStripMenuItem1
             // 
             this.showToolStripMenuItem1.Name = "showToolStripMenuItem1";
-            this.showToolStripMenuItem1.Size = new System.Drawing.Size(125, 22);
+            this.showToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.showToolStripMenuItem1.Text = "Show";
             this.showToolStripMenuItem1.Click += new System.EventHandler(this.showToolStripMenuItem1_Click);
             // 
             // trainToolStripMenuItem1
             // 
             this.trainToolStripMenuItem1.Name = "trainToolStripMenuItem1";
-            this.trainToolStripMenuItem1.Size = new System.Drawing.Size(125, 22);
+            this.trainToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.trainToolStripMenuItem1.Text = "Train";
             this.trainToolStripMenuItem1.Click += new System.EventHandler(this.trainToolStripMenuItem1_Click);
             // 
             // autoTrainToolStripMenuItem
             // 
             this.autoTrainToolStripMenuItem.Name = "autoTrainToolStripMenuItem";
-            this.autoTrainToolStripMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.autoTrainToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.autoTrainToolStripMenuItem.Text = "AutoTrain";
             this.autoTrainToolStripMenuItem.Click += new System.EventHandler(this.autoTrainToolStripMenuItem_ClickAsync);
             // 
@@ -307,6 +309,13 @@ namespace WinFormsAppWCUDA
             this.lblNoOfIterations.Size = new System.Drawing.Size(0, 15);
             this.lblNoOfIterations.TabIndex = 10;
             // 
+            // xORExampleToolStripMenuItem
+            // 
+            this.xORExampleToolStripMenuItem.Name = "xORExampleToolStripMenuItem";
+            this.xORExampleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.xORExampleToolStripMenuItem.Text = "XOR Example";
+            this.xORExampleToolStripMenuItem.Click += new System.EventHandler(this.xORExampleToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -368,6 +377,7 @@ namespace WinFormsAppWCUDA
         private System.Windows.Forms.Label lblNoOfCorrectGuesses;
         private System.Windows.Forms.ToolStripMenuItem autoTrainToolStripMenuItem;
         private System.Windows.Forms.Label lblNoOfIterations;
+        private System.Windows.Forms.ToolStripMenuItem xORExampleToolStripMenuItem;
     }
 }
 

@@ -17,10 +17,10 @@ namespace CPULib
         }
 
         //
-        public static float SigmoidFunctionDerivative(float x)
-        {
-            return SigmoidFunction(x) * (1.0F - SigmoidFunction(x));
-        }
+        public static float SigmoidFunctionDerivative(float x) => x * (1 - x);
+        //{
+        //    return SigmoidFunction(x) * (1.0F - SigmoidFunction(x));
+        //}
 
         public static float SignFunction(float n)
         {
