@@ -34,7 +34,11 @@ namespace CPULib
 
         
 
-        //
+        /// <summary>
+        /// Randomize each element based on range.
+        /// </summary>
+        /// <param name="min">Inclusive min range.</param>
+        /// <param name="max">Exclusive max range.</param>
         public void Randomize(float min, float max)
         {
             Random random = new Random();
@@ -48,7 +52,9 @@ namespace CPULib
             }
         }
 
-        //
+        /// <summary>
+        /// Makes the matrix identity matrix.
+        /// </summary>
         public void MakeIdentity()
         {
             if( this.Cols != this.Rows)
@@ -68,7 +74,10 @@ namespace CPULib
 
         }
 
-        //
+        /// <summary>
+        /// Element-wise multiplication.(aka Hadamard)
+        /// </summary>
+        /// <param name="other"></param>
         public void Emul( Matrix other)
         {
 
@@ -88,7 +97,10 @@ namespace CPULib
             //return mRet;
         }
 
-        //
+        /// <summary>
+        /// Multiply each element with x.
+        /// </summary>
+        /// <param name="x">Scale factor.</param>
         public void Scale(float x)
         {
             for (int r = 0; r < Rows; r++)
@@ -117,7 +129,11 @@ namespace CPULib
             return mret;
         }
 
-        //
+        /// <summary>
+        /// Takes the transpoze of the matrix.
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <returns>new matrix transpozed.</returns>
         public static Matrix Transpoze(Matrix matrix)
         {
             Matrix mRet = new Matrix(matrix.Cols, matrix.Rows);
@@ -133,7 +149,13 @@ namespace CPULib
             return mRet;
         }
 
-        //
+        /// <summary>
+        /// Matrix multiplication.
+        /// </summary>
+        /// <param name="matrixL">Left Matrix.</param>
+        /// <param name="matrixR">Right Matix.</param>
+        /// <returns>Result of Matrix multiplication.</returns>
+        /// remarks Columns of the left matrix must be equal to Rows of the right matrix.
         public static Matrix operator * (Matrix matrixL, Matrix matrixR)
         {
             if ( matrixL.Cols != matrixR.Rows) return null;
@@ -198,6 +220,11 @@ namespace CPULib
             }
         }
 
+        /// <summary>
+        /// Apply activation function on each element of the Matrix.
+        /// </summary>
+        /// <param name="f">Activation function.</param>
+        /// <returns>Resultant matrix.</returns>
         public static Matrix Map( Matrix matrix, ActivationFunction f)
         {
             var mRet = new Matrix(matrix.Rows, matrix.Cols);
@@ -213,8 +240,15 @@ namespace CPULib
             }
             return mRet;
         }
-  
-        //
+
+        /// <summary>
+        /// Random matrix based on range.
+        /// </summary>
+        /// <param name="rows">rows</param>
+        /// <param name="cols">cols</param>
+        /// <param name="min">Inclusive min range.</param>
+        /// <param name="max">Exclusive max range.</param>
+        /// <returns></returns>
         public static Matrix GenerateRandomMatrix(int rows, int cols, float min, float max)
         {
             Matrix mret = new Matrix(rows, cols);
@@ -222,17 +256,10 @@ namespace CPULib
             return mret;
         }
 
-        //public static Matrix GenerateBiasMatrix(int rows)
-        //{
-        //    Matrix mret = new Matrix(rows, 1);
-
-        //    for (int r = 0; r < mret.Rows; r++)
-        //        for (int c = 0; c < mret.Cols; c++)
-        //            mret.Data[c + r * mret.Cols] = ;
-
-        //}
-
-        //
+        /// <summary>
+        /// Element-wise sum.
+        /// </summary>
+        /// <param name="other"></param>
         public void Add(Matrix other)
         {
             // matrices must be same size
@@ -243,7 +270,10 @@ namespace CPULib
                     this.Data[c + r * Cols] += other.Data[c + r * Cols];
         }
 
-        //
+        /// <summary>
+        /// Adds to each element.
+        /// </summary>
+        /// <param name="num">Number to add elements.</param>
         public void Add(float num)
         {
             for (int r = 0; r < this.Rows; r++)
@@ -251,7 +281,11 @@ namespace CPULib
                     this.Data[c + r * Cols] += num;
         }
         
-        //
+        /// <summary>
+        /// Element-wise subtraction.
+        /// </summary>
+        /// <returns>left - right Matrix.</returns>
+        /// <seealso cref="operator -(Matrix, Matrix)"/>
         public static Matrix Subtract(Matrix left, Matrix right)
         {
             Matrix mRet = new Matrix(left.Rows, left.Cols);
@@ -286,18 +320,21 @@ namespace CPULib
             return mret;
         }
 
-        //
+        /// <summary>
+        /// Convert Matrix to array.
+        /// </summary>
+        /// <returns></returns>
         public float[] ToArray()
         {
             List<float> list = new List<float>(this.Rows * this.Cols);
-            float[] arrayRet = new float[this.Rows * this.Cols];
+            //float[] arrayRet = new float[this.Rows * this.Cols];
 
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Cols; c++)
                 {
                     list.Add(this.Data[c + r * Cols]);
-                    arrayRet[c + r*this.Cols] = this.Data[c + r * Cols];
+                    //arrayRet[c + r*this.Cols] = this.Data[c + r * Cols];
                 }
             }
             return list.ToArray();

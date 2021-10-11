@@ -19,6 +19,7 @@ namespace CPULib
 
         public ActivationFunction activationFunction { get; private set; }
         public ActivationFunction activationFunctionDerivative { get; private set; }
+        public static int TrainingCount { get; set; }
 
 
 
@@ -54,11 +55,12 @@ namespace CPULib
         }
 
 
-        static int count = 0;
+        
         public void Train(float[] input_array, float[] target_array)
         {
             //This works for single hidden layer.
             //TODO add multi layer support.
+
             
             var inputs = Matrix.FromArrayToMatrix(input_array);
             var hidden = this.Weights_ih * inputs;
@@ -71,7 +73,7 @@ namespace CPULib
             outputs.Map(activationFunction);
 
             var targets = Matrix.FromArrayToMatrix(target_array);
-            
+
             var output_errors = Matrix.Subtract(targets, outputs);
 
             var gradients = Matrix.Map(outputs, this.activationFunctionDerivative);
@@ -81,7 +83,7 @@ namespace CPULib
             var hidden_T = Matrix.Transpoze(hidden);
             var weight_ho_deltas = gradients * hidden_T;
 
-            // SUS
+            
             this.Weights_ho.Add(weight_ho_deltas);
             this.Bias_o.Add(gradients);
 
@@ -95,15 +97,10 @@ namespace CPULib
             var inputs_T = Matrix.Transpoze(inputs);
             var Weights_ih_deltas = hidden_gradient * inputs_T;
 
-            if (count == 100)
-            {
-                Matrix m = Matrix.GenerateRandomMatrix(1, 1, 1, 2);
-            }
-
             this.Weights_ih.Add(Weights_ih_deltas);
             this.Bias_h.Add(hidden_gradient);
 
-            count++;
+            TrainingCount++;
         }
 
     }

@@ -40,13 +40,13 @@ namespace CPULib
         public static float ReluFunction(float x)
         {
 	        if (x < 0.0F) return 0.0F;
-	        return x;
+	        else return x;
         }
 
         public static float ReluFunctionDerivative(float x)
         {
 	        if (x < 0.0F) return 0.0F;
-	        return 1.0F;
+	        else return 1.0F;
         }
 
 

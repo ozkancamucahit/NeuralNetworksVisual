@@ -11,14 +11,12 @@ namespace CPULib
     {
         private static void Add(UInt32 N, float[] x, float[] y)
         {
-
             for (UInt32 i = 0; i < N; ++i)
                 y[i] += x[i];
-
         }
 
         /// <summary>
-        /// Runs the vector add example with 1M elements
+        /// Runs the vector add example on CPU with 1M elements.
         /// </summary>
         public static long RunExample()
         {

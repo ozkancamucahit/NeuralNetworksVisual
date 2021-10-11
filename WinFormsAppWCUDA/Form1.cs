@@ -582,7 +582,8 @@ namespace WinFormsAppWCUDA
 
         private void btn_addWcpu_Click(object sender, EventArgs e)
         {
-
+            long elapsedMs = Example.RunExample();
+            MessageBox.Show($"Time it took : {elapsedMs}");
         }
 
         private void showToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -612,7 +613,7 @@ namespace WinFormsAppWCUDA
 
             if (G == null) G = pbCartesianBox.CreateGraphics();
             ResetList();
-            GenerateRandomPointsAndSamples(100);
+            GenerateRandomPointsAndSamples(10);
             ReDrawSamples();
             WireUpList();
 
