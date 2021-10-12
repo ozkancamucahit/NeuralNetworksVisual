@@ -22,6 +22,8 @@ namespace WinFormsAppWCUDA
         public bool TrainMode { get; private set; }
         public bool AutoTrainStopped { get; private set; } = false;
 
+        public bool AutoTrainClicked { get; private set; }
+
         private static UInt32 numberOfCorrectGuesses = 0;
         private static UInt32 numberOfWrongGuesses = 0;
         private static UInt32 numberOfIterations = 0;
@@ -613,7 +615,11 @@ namespace WinFormsAppWCUDA
 
             if (G == null) G = pbCartesianBox.CreateGraphics();
             ResetList();
-            GenerateRandomPointsAndSamples(10);
+
+            if (AutoTrainClicked) GenerateRandomPointsAndSamples(100);
+            
+            else GenerateRandomPointsAndSamples(10);
+
             ReDrawSamples();
             WireUpList();
 
@@ -654,6 +660,7 @@ namespace WinFormsAppWCUDA
         {
             
             AutoTrainStopped = false;
+            AutoTrainClicked = true;
             trainToolStripMenuItem1_Click(sender, e);
             lblNoOfCorrectGuesses.Text = "";
             lblNoOfIterations.Text = "";
@@ -704,9 +711,10 @@ namespace WinFormsAppWCUDA
             sw.Stop();
             var elapsedMs = sw.ElapsedMilliseconds;
             AutoTrainStopped = true;
+            AutoTrainClicked = false;
 
-            lblNoOfIterations.Invoke(SetLblNoOfIterationsTextSafe, elapsedMs);
             btn_reset.Invoke(SetResetButtonTextAfterAutoTrainSafe);
+            lblNoOfIterations.Invoke(SetLblNoOfIterationsTextSafe, elapsedMs);
 
             numberOfCorrectGuesses = 0;
             numberOfWrongGuesses = 0;
